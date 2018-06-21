@@ -285,6 +285,16 @@ public:
     void SetName(const wxString& name) { m_Name = name; }
             // set the printout name
 
+    // Controls showing the dialog when printing: by default, always shown.
+    enum PromptMode
+    {
+        Prompt_Never,
+        Prompt_Once,
+        Prompt_Always
+    };
+
+    void SetPromptMode(PromptMode promptMode) { m_promptMode = promptMode; }
+
 protected:
     virtual wxHtmlPrintout *CreatePrintout();
     virtual bool DoPreview(wxHtmlPrintout *printout1, wxHtmlPrintout *printout2);
@@ -307,6 +317,8 @@ private:
 
     wxString m_Headers[2], m_Footers[2];
     wxWindow *m_ParentWindow;
+
+    PromptMode m_promptMode;
 
     wxDECLARE_NO_COPY_CLASS(wxHtmlEasyPrinting);
 };
