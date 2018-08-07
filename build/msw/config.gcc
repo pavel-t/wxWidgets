@@ -32,7 +32,7 @@ CXXFLAGS ?=
 CPPFLAGS ?= 
 
 # Standard linker flags 
-LDFLAGS ?= 
+LDFLAGS ?=  $(CPPFLAGS)
 
 # The C preprocessor 
 CPP ?= $(CC) -E
@@ -63,40 +63,40 @@ DEBUG_INFO ?= default
 DEBUG_FLAG ?= 1
 
 # Multiple libraries or single huge monolithic one? [0,1]
-MONOLITHIC ?= 0
+MONOLITHIC ?= 1
 
 # Build GUI libraries? [0,1]
 USE_GUI ?= 1
 
 # Build wxHTML library (USE_GUI must be 1)? [0,1]
-USE_HTML ?= 1
+USE_HTML ?= 0
 
 # Build wxWebView library (USE_GUI must be 1)? [0,1]
-USE_WEBVIEW ?= 1
+USE_WEBVIEW ?= 0
 
 # Build multimedia library (USE_GUI must be 1)? [0,1]
-USE_MEDIA ?= 1
+USE_MEDIA ?= 0
 
 # Build wxXRC library (USE_GUI must be 1)? [0,1]
-USE_XRC ?= 1
+USE_XRC ?= 0
 
 # Build wxAUI library (USE_GUI must be 1)? [0,1]
-USE_AUI ?= 1
+USE_AUI ?= 0
 
 # Build wxRibbon library (USE_GUI must be 1)? [0,1]
-USE_RIBBON ?= 1
+USE_RIBBON ?= 0
 
 # Build wxPropertyGrid library (USE_GUI must be 1)? [0,1]
 USE_PROPGRID ?= 1
 
 # Build wxRichTextCtrl library (USE_GUI must be 1)? [0,1]
-USE_RICHTEXT ?= 1
+USE_RICHTEXT ?= 0
 
 # Build wxStyledTextCtrl library (USE_GUI must be 1)? [0,1]
-USE_STC ?= 1
+USE_STC ?= 0
 
 # Build OpenGL canvas library (USE_GUI must be 1)? [0,1]
-USE_OPENGL ?= 1
+USE_OPENGL ?= 0
 
 # Build quality assurance classes library (USE_GUI must be 1)? [0,1]
 USE_QA ?= 0

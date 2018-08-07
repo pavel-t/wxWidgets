@@ -44,7 +44,7 @@
 // in the version after it completely.
 //
 // Recommended setting: 0 (please update your code)
-#define WXWIN_COMPATIBILITY_3_0 1
+#define WXWIN_COMPATIBILITY_3_0 0
 
 // MSW-only: Set to 0 for accurate dialog units, else 1 for old behaviour when
 // default system font is used for wxWindow::GetCharWidth/Height() instead of
@@ -65,7 +65,7 @@
 // loss.
 //
 // Recommended setting: 0
-#define wxUSE_UNSAFE_WXSTRING_CONV 1
+#define wxUSE_UNSAFE_WXSTRING_CONV 0
 
 // If set to 1, enables "reproducible builds", i.e. build output should be
 // exactly the same if the same build is redone again. As using __DATE__ and
@@ -75,7 +75,7 @@
 // Default is 0
 //
 // Recommended setting: 0
-#define wxUSE_REPRODUCIBLE_BUILD 0
+#define wxUSE_REPRODUCIBLE_BUILD 1
 
 // ----------------------------------------------------------------------------
 // debugging settings
@@ -305,7 +305,7 @@
 //
 // Recommended setting: 2 if you want to have maximal performance and don't
 // care about the scenario described above.
-#define wxUSE_COMPILER_TLS 1
+#define wxUSE_COMPILER_TLS 2
 
 // ----------------------------------------------------------------------------
 // Interoperability with the standard library.
@@ -319,7 +319,7 @@
 // Recommended setting: 0 as the options below already provide a relatively
 // good level of interoperability and changing this option arguably isn't worth
 // diverging from the official builds of the library.
-#define wxUSE_STL 0
+#define wxUSE_STL 1
 
 // This is not a real option but is used as the default value for
 // wxUSE_STD_IOSTREAM, wxUSE_STD_STRING and wxUSE_STD_CONTAINERS_COMPATIBLY.
@@ -350,7 +350,7 @@
 //
 // Recommended setting: 1 unless compatibility with the official wxWidgets
 // build and/or the existing code is a concern.
-#define wxUSE_STD_CONTAINERS 0
+#define wxUSE_STD_CONTAINERS 1
 
 // Use standard C++ streams if 1 instead of wx streams in some places. If
 // disabled, wx streams are used everywhere and wxWidgets doesn't depend on the
