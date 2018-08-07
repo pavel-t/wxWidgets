@@ -14,7 +14,7 @@
 
 #if wxUSE_XRC && wxUSE_COLLPANE
 
-class WXDLLIMPEXP_FWD_CORE wxCollapsiblePane;
+#include "wx/collpane.h"
 
 class WXDLLIMPEXP_XRC wxCollapsiblePaneXmlHandler : public wxXmlResourceHandler
 {

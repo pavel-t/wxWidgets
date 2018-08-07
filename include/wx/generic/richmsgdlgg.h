@@ -11,8 +11,7 @@
 #define _WX_GENERIC_RICHMSGDLGG_H_
 
 class WXDLLIMPEXP_FWD_CORE wxCheckBox;
-class WXDLLIMPEXP_FWD_CORE wxCollapsiblePane;
-class WXDLLIMPEXP_FWD_CORE wxCollapsiblePaneEvent;
+#include "wx/collpane.h"
 
 class WXDLLIMPEXP_CORE wxGenericRichMessageDialog
                         : public wxRichMessageDialogBase

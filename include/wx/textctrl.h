@@ -721,10 +721,7 @@ public:
     virtual bool SetDefaultStyle(const wxTextAttr& style) wxOVERRIDE;
 
     // wxTextAreaBase overrides
-    virtual wxString GetValue() const wxOVERRIDE
-    {
-       return wxTextEntry::GetValue();
-    }
+    virtual wxString GetValue() const wxOVERRIDE;
     virtual void SetValue(const wxString& value) wxOVERRIDE
     {
        wxTextEntry::SetValue(value);

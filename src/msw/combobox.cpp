@@ -710,6 +710,11 @@ wxSize wxComboBox::DoGetSizeFromTextSize(int xlen, int ylen) const
     return tsize;
 }
 
+wxString wxComboBox::GetStringSelection() const
+{
+    return wxChoice::GetStringSelection();
+}
+
 wxWindow *wxComboBox::MSWFindItem(long id, WXHWND hWnd) const
 {
     // The base class version considers that any window with the same ID as

@@ -83,8 +83,7 @@ public:
     virtual void Clear() wxOVERRIDE;
     virtual wxString GetValue() const wxOVERRIDE;
     virtual void SetValue(const wxString& value) wxOVERRIDE;
-    virtual wxString GetStringSelection() const wxOVERRIDE
-        { return wxChoice::GetStringSelection(); }
+    virtual wxString GetStringSelection() const wxOVERRIDE;
     virtual void Popup() { MSWDoPopupOrDismiss(true); }
     virtual void Dismiss() { MSWDoPopupOrDismiss(false); }
     virtual void SetSelection(int n) wxOVERRIDE { wxChoice::SetSelection(n); }
