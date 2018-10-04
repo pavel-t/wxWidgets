@@ -722,10 +722,7 @@ public:
 
     // wxTextAreaBase overrides
     virtual wxString GetValue() const wxOVERRIDE;
-    virtual void SetValue(const wxString& value) wxOVERRIDE
-    {
-       wxTextEntry::SetValue(value);
-    }
+    virtual void SetValue(const wxString& value) wxOVERRIDE;
 
     // wxWindow overrides
     virtual wxVisualAttributes GetDefaultAttributes() const wxOVERRIDE
