@@ -91,6 +91,11 @@ public:
         return m_bomType;
     }
 
+    bool IsFallbackUsed() const
+    {
+        return m_ownsConv && m_bomType == wxBOM_None;
+    }
+
 private:
     // common part of all ctors
     void Init()
