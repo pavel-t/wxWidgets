@@ -80,7 +80,7 @@ protected:
             s << '\t' << reply[n] << '\n';
         }
 
-        wxLogMessage("%s", s.c_str());
+        wxLogMessage("%s", s);
 
         return true;
     }
@@ -100,7 +100,7 @@ public:
         if ( !wxDebugReportCompress::DoProcess() )
             return false;
         wxMailMessage msg(GetReportName() + " crash report",
-                          "vadim@wxwindows.org",
+                          "vadim@wxwidgets.org",
                           wxEmptyString, // mail body
                           wxEmptyString, // from address
                           GetCompressedFileName(),
@@ -371,7 +371,7 @@ void MyFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
     wxMessageBox
     (
-        "wxDebugReport sample\n(c) 2005 Vadim Zeitlin <vadim@wxwindows.org>",
+        "wxDebugReport sample\n(c) 2005 Vadim Zeitlin <vadim@wxwidgets.org>",
         "wxWidgets Debug Report Sample",
         wxOK | wxICON_INFORMATION,
         this
@@ -467,7 +467,7 @@ void MyApp::GenerateReport(wxDebugReport::Context ctx)
             else
             {
                 wxLogMessage("Report generated in \"%s\".",
-                             report->GetCompressedFileName().c_str());
+                             report->GetCompressedFileName());
                 report->Reset();
             }
         }

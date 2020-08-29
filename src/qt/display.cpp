@@ -21,8 +21,7 @@ public:
 
     virtual wxRect GetGeometry() const wxOVERRIDE;
     virtual wxRect GetClientArea() const wxOVERRIDE;
-
-    virtual wxString GetName() const wxOVERRIDE;
+    virtual int GetDepth() const wxOVERRIDE;
 
 #if wxUSE_DISPLAY
     virtual wxArrayVideoModes GetModes(const wxVideoMode& mode) const wxOVERRIDE;
@@ -46,9 +45,9 @@ wxRect wxDisplayImplQt::GetClientArea() const
     return wxQtConvertRect( QApplication::desktop()->availableGeometry( GetIndex() ));
 }
 
-wxString wxDisplayImplQt::GetName() const
+int wxDisplayImplQt::GetDepth() const
 {
-    return wxString();
+    return IsPrimary() ? QApplication::desktop()->depth() : 0;
 }
 
 #if wxUSE_DISPLAY

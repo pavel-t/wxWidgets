@@ -49,47 +49,47 @@ wxMessageDialog::wxMessageDialog(wxWindow *parent,
 
 wxString wxMessageDialog::GetDefaultYesLabel() const
 {
-#if defined(__WXGTK3__) && GTK_CHECK_VERSION(3,10,0)
+#ifdef __WXGTK4__
     return wxConvertMnemonicsToGTK(wxGetStockLabel(wxID_YES));
 #else
-    return GTK_STOCK_YES;
-#endif // GTK >= 3.10 / < 3.10
+    return "gtk-yes";
+#endif
 }
 
 wxString wxMessageDialog::GetDefaultNoLabel() const
 {
-#if defined(__WXGTK3__) && GTK_CHECK_VERSION(3,10,0)
+#ifdef __WXGTK4__
     return wxConvertMnemonicsToGTK(wxGetStockLabel(wxID_NO));
 #else
-    return GTK_STOCK_NO;
-#endif // GTK >= 3.10 / < 3.10
+    return "gtk-no";
+#endif
 }
 
 wxString wxMessageDialog::GetDefaultOKLabel() const
 {
-#if defined(__WXGTK3__) && GTK_CHECK_VERSION(3,10,0)
+#ifdef __WXGTK4__
     return wxConvertMnemonicsToGTK(wxGetStockLabel(wxID_OK));
 #else
-    return GTK_STOCK_OK;
-#endif // GTK >= 3.10 / < 3.10
+    return "gtk-ok";
+#endif
 }
 
 wxString wxMessageDialog::GetDefaultCancelLabel() const
 {
-#if defined(__WXGTK3__) && GTK_CHECK_VERSION(3,10,0)
+#ifdef __WXGTK4__
     return wxConvertMnemonicsToGTK(wxGetStockLabel(wxID_CANCEL));
 #else
-    return GTK_STOCK_CANCEL;
-#endif // GTK >= 3.10 / < 3.10
+    return "gtk-cancel";
+#endif
 }
 
 wxString wxMessageDialog::GetDefaultHelpLabel() const
 {
-#if defined(__WXGTK3__) && GTK_CHECK_VERSION(3,10,0)
+#ifdef __WXGTK4__
     return wxConvertMnemonicsToGTK(wxGetStockLabel(wxID_HELP));
 #else
-    return GTK_STOCK_HELP;
-#endif // GTK >= 3.10 / < 3.10
+    return "gtk-help";
+#endif
 }
 
 void wxMessageDialog::DoSetCustomLabel(wxString& var, const ButtonLabel& label)
@@ -102,11 +102,11 @@ void wxMessageDialog::DoSetCustomLabel(wxString& var, const ButtonLabel& label)
     }
     else // stock label
     {
-#if defined(__WXGTK3__) && GTK_CHECK_VERSION(3,10,0)
+#ifdef __WXGTK4__
         var = wxConvertMnemonicsToGTK(wxGetStockLabel(stockId));
 #else
         var = wxGetStockGtkID(stockId);
-#endif // GTK >= 3.10 / < 3.10
+#endif
     }
 }
 

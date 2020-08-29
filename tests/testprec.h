@@ -2,7 +2,6 @@
 #define WX_TESTPREC_INCLUDED 1
 
 #include "wx/wxprec.h"
-#include "wx/stopwatch.h"
 #include "wx/evtloop.h"
 
 // This needs to be included before catch.hpp to be taken into account.
@@ -56,6 +55,31 @@
     #define wxDEFAULT_MANTISSA_SIZE_3
 #endif
 
+// Many tests use wide characters or wide strings inside Catch macros, which
+// requires converting them to string if the check fails. This falls back to
+// std::ostream::operator<<() by default, which never worked correctly, as there
+// never was any overload for wchar_t and so it used something else, but in C++
+// 20 this overload is explicitly deleted, so it results in compile-time error.
+//
+// Hence define this specialization to allow compiling such comparisons.
+namespace Catch
+{
+
+template <>
+struct StringMaker<wchar_t>
+{
+    static std::string convert(wchar_t wc)
+    {
+        if ( wc < 0x7f )
+            return std::string(static_cast<char>(wc), 1);
+
+        return wxString::Format(wxASCII_STR("U+%06X"), wc).ToStdString(wxConvLibc);
+    }
+};
+
+} // namespace Catch
+
+
 // thrown when assert fails in debug build
 class TestAssertFailure
 {
@@ -108,27 +132,6 @@ public:
     #define WX_ASSERT_FAILS_WITH_ASSERT(cond)
 #endif
 
-#define WX_ASSERT_EVENT_OCCURS_IN(eventcounter, count, ms) \
-{\
-    wxStopWatch sw; \
-    wxEventLoopBase* loop = wxEventLoopBase::GetActive(); \
-    while(eventcounter.GetCount() < count) \
-    { \
-        if(sw.Time() < ms) \
-            loop->Dispatch(); \
-        else \
-        { \
-            CPPUNIT_FAIL(wxString::Format("timeout reached with %d " \
-                                          "events received, %d expected", \
-                                          eventcounter.GetCount(), count).ToStdString()); \
-            break; \
-        } \
-    } \
-    eventcounter.Clear(); \
-}
-
-#define WX_ASSERT_EVENT_OCCURS(eventcounter,count) WX_ASSERT_EVENT_OCCURS_IN(eventcounter, count, 100)
-
 // these functions can be used to hook into wxApp event processing and are
 // currently used by the events propagation test
 class WXDLLIMPEXP_FWD_BASE wxEvent;
@@ -142,6 +145,12 @@ extern void SetProcessEventFunc(ProcessEventFunc func);
 extern bool IsNetworkAvailable();
 
 extern bool IsAutomaticTest();
+
+extern bool IsRunningUnderXVFB();
+
+#ifdef __LINUX__
+extern bool IsRunningInLXC();
+#endif // __LINUX__
 
 // Helper class setting the locale to the given one for its lifetime.
 class LocaleSetter

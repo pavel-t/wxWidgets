@@ -31,6 +31,7 @@
     #include "wx/bitmap.h"
     #include "wx/button.h"
     #include "wx/checkbox.h"
+    #include "wx/dcclient.h"
     #include "wx/radiobox.h"
     #include "wx/statbox.h"
     #include "wx/stattext.h"
@@ -39,7 +40,6 @@
 #endif
 
 #include "wx/sizer.h"
-#include "wx/ioswrap.h"
 
 #include "widgets.h"
 
@@ -293,7 +293,7 @@ private:
         {
             default:
                 wxFAIL_MSG( "unexpected HitTest() result" );
-                // fall through
+                wxFALLTHROUGH;
 
             case wxTE_HT_UNKNOWN:
                 x = y = -1;
@@ -317,7 +317,7 @@ private:
                 break;
         }
 
-        wxLogMessage("Mouse is %s (%ld, %ld)", where.c_str(), x, y);
+        wxLogMessage("Mouse is %s (%ld, %ld)", where, x, y);
     }
 };
 
@@ -690,6 +690,7 @@ void TextWidgetsPage::CreateText()
     {
         default:
             wxFAIL_MSG( "unexpected lines radio box selection" );
+            wxFALLTHROUGH;
 
         case TextLines_Single:
             break;
@@ -755,6 +756,7 @@ void TextWidgetsPage::CreateText()
     {
         default:
             wxFAIL_MSG( "unexpected kind radio box selection" );
+            wxFALLTHROUGH;
 
         case TextKind_Plain:
             break;
@@ -941,7 +943,7 @@ void TextWidgetsPage::OnButtonLoad(wxCommandEvent& WXUNUSED(event))
         {
             long elapsed = sw.Time();
             wxLogMessage("Loaded file '%s' in %lu.%us",
-                         filename.c_str(), elapsed / 1000,
+                         filename, elapsed / 1000,
                          (unsigned int) elapsed % 1000);
         }
     }
@@ -984,24 +986,26 @@ void TextWidgetsPage::OnUpdateUIResetButton(wxUpdateUIEvent& event)
                   (m_radioWrap->GetSelection() != DEFAULTS.wrapStyle) );
 }
 
-void TextWidgetsPage::OnText(wxCommandEvent& WXUNUSED(event))
+void TextWidgetsPage::OnText(wxCommandEvent& event)
 {
-    // small hack to suppress the very first message: by then the logging is
-    // not yet redirected and so initial setting of the text value results in
-    // an annoying message box
-    static bool s_firstTime = true;
-    if ( s_firstTime )
-    {
-        s_firstTime = false;
+    if ( !IsUsingLogWindow() )
         return;
-    }
 
-    wxLogMessage("Text ctrl value changed");
+    // Replace middle of long text with ellipsis just to avoid filling up the
+    // log control with too much unnecessary stuff.
+    wxLogMessage("Text control value changed (now '%s')",
+                 wxControl::Ellipsize
+                 (
+                    event.GetString(),
+                    wxClientDC(this),
+                    wxELLIPSIZE_MIDDLE,
+                    GetTextExtent('W').x*100
+                 ));
 }
 
 void TextWidgetsPage::OnTextEnter(wxCommandEvent& event)
 {
-    wxLogMessage("Text entered: '%s'", event.GetString().c_str());
+    wxLogMessage("Text entered: '%s'", event.GetString());
     event.Skip();
 }
 

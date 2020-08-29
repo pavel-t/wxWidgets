@@ -258,7 +258,9 @@ private:
                 wxBMP_8BPP,
                 wxBMP_8BPP_GREY,
                 wxBMP_8BPP_RED,
+#if wxUSE_PALETTE
                 wxBMP_8BPP_PALETTE,
+#endif // wxUSE_PALETTE
                 wxBMP_24BPP
             };
 
@@ -270,7 +272,9 @@ private:
                 "8 bpp color",
                 "8 bpp greyscale",
                 "8 bpp red",
+#if wxUSE_PALETTE
                 "8 bpp own palette",
+#endif // wxUSE_PALETTE
                 "24 bpp"
             };
 
@@ -283,7 +287,7 @@ private:
             {
                 int format = bppvalues[bppselection];
                 image.SetOption(wxIMAGE_OPTION_BMP_FORMAT, format);
-
+#if wxUSE_PALETTE
                 if ( format == wxBMP_8BPP_PALETTE )
                 {
                     unsigned char *cmap = new unsigned char [256];
@@ -293,6 +297,7 @@ private:
 
                     delete[] cmap;
                 }
+#endif // wxUSE_PALETTE
             }
         }
 #if wxUSE_LIBPNG
@@ -752,7 +757,7 @@ wxString MyFrame::LoadUserImage(wxImage& image)
     {
         if ( !image.LoadFile(filename) )
         {
-            wxLogError("Couldn't load image from '%s'.", filename.c_str());
+            wxLogError("Couldn't load image from '%s'.", filename);
 
             return wxEmptyString;
         }
@@ -802,7 +807,7 @@ void MyFrame::OnImageInfo( wxCommandEvent &WXUNUSED(event) )
             {
                 default:
                     wxFAIL_MSG( "unknown image resolution units" );
-                    // fall through
+                    wxFALLTHROUGH;
 
                 case wxIMAGE_RESOLUTION_NONE:
                     info += " in default units";
@@ -962,7 +967,7 @@ void MyFrame::OnThumbnail( wxCommandEvent &WXUNUSED(event) )
     wxStopWatch sw;
     if ( !image.LoadFile(filename) )
     {
-        wxLogError("Couldn't load image from '%s'.", filename.c_str());
+        wxLogError("Couldn't load image from '%s'.", filename);
         return;
     }
 

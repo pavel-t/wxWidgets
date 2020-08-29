@@ -726,7 +726,7 @@ void MyTextCtrl::LogKeyEvent(const wxString& name, wxKeyEvent& event) const
 
     wxLogMessage( "%s event: %s (flags = %c%c%c%c)",
                   name,
-                  key.c_str(),
+                  key,
                   GetChar( event.ControlDown(), 'C' ),
                   GetChar( event.AltDown(), 'A' ),
                   GetChar( event.ShiftDown(), 'S' ),
@@ -781,7 +781,7 @@ static wxString GetMouseEventDesc(const wxMouseEvent& ev)
     wxASSERT(!(dbl && up));
 
     return wxString::Format("%s mouse button %s",
-                            button.c_str(),
+                            button,
                             dbl ? "double clicked"
                                 : up ? "released" : "clicked");
 }
@@ -973,8 +973,8 @@ void MyTextCtrl::OnTextURL(wxTextUrlEvent& event)
          end = event.GetURLEnd();
 
     wxLogMessage("Mouse event over URL '%s': %s",
-                 GetValue().Mid(start, end - start).c_str(),
-                 GetMouseEventDesc(ev).c_str());
+                 GetValue().Mid(start, end - start),
+                 GetMouseEventDesc(ev));
 }
 
 void MyTextCtrl::OnChar(wxKeyEvent& event)
@@ -995,6 +995,16 @@ void MyTextCtrl::OnKeyUp(wxKeyEvent& event)
 
 void MyTextCtrl::OnKeyDown(wxKeyEvent& event)
 {
+    if ( ms_logKey )
+        LogKeyEvent( "Key down", event);
+
+    event.Skip();
+
+    // Only handle bare function keys below, notably let Alt-Fn perform their
+    // usual default functions as intercepting them is annoying.
+    if ( event.GetModifiers() != 0 )
+        return;
+
     switch ( event.GetKeyCode() )
     {
         case WXK_F1:
@@ -1018,12 +1028,12 @@ void MyTextCtrl::OnKeyDown(wxKeyEvent& event)
 
                 wxLogMessage("Selection: from %ld to %ld.", from, to);
                 wxLogMessage("Selection = '%s' (len = %u)",
-                             sel.c_str(),
+                             sel,
                              (unsigned int) sel.length());
 
                 const wxString text = GetLineText(line);
                 wxLogMessage("Current line: \"%s\"; length = %lu",
-                             text.c_str(), text.length());
+                             text, text.length());
             }
             break;
 
@@ -1088,11 +1098,6 @@ void MyTextCtrl::OnKeyDown(wxKeyEvent& event)
             wxLogMessage("Control marked as non modified");
             break;
     }
-
-    if ( ms_logKey )
-        LogKeyEvent( "Key down", event);
-
-    event.Skip();
 }
 
 //----------------------------------------------------------------------
@@ -1200,11 +1205,11 @@ MyPanel::MyPanel( wxFrame *frame, int x, int y, int w, int h )
 
     m_tab = new MyTextCtrl( this, 100, "Multiline, allow <TAB> processing.",
       wxPoint(180,90), wxSize(200,70), wxTE_MULTILINE |  wxTE_PROCESS_TAB );
-    m_tab->SetClientData((void *)"tab");
+    m_tab->SetClientData(const_cast<void*>(static_cast<const void*>(wxS("tab"))));
 
     m_enter = new MyTextCtrl( this, 100, "Multiline, allow <ENTER> processing.",
       wxPoint(180,170), wxSize(200,70), wxTE_MULTILINE | wxTE_PROCESS_ENTER );
-    m_enter->SetClientData((void *)"enter");
+    m_enter->SetClientData(const_cast<void*>(static_cast<const void*>(wxS("enter"))));
 
     m_textrich = new MyTextCtrl(this, wxID_ANY, "Allows more than 30Kb of text\n"
                                 "(on all Windows versions)\n"
@@ -1228,8 +1233,24 @@ MyPanel::MyPanel( wxFrame *frame, int x, int y, int w, int h )
     m_textrich->AppendText("This text should be cyan on blue\n");
     m_textrich->SetDefaultStyle(wxTextAttr(*wxBLUE, *wxWHITE));
     m_textrich->AppendText("And this should be in blue and the text you "
-                           "type should be in blue as well");
-
+                           "type should be in blue as well.\n");
+    m_textrich->SetDefaultStyle(wxTextAttr());
+    wxTextAttr attr = m_textrich->GetDefaultStyle();
+    attr.SetFontUnderlined(true);
+    m_textrich->SetDefaultStyle(attr);
+    m_textrich->AppendText("\nAnd there");
+    attr.SetFontUnderlined(false);
+    m_textrich->SetDefaultStyle(attr);
+    m_textrich->AppendText(" is a ");
+    attr.SetFontUnderlined(wxTEXT_ATTR_UNDERLINE_SPECIAL, *wxRED);
+    m_textrich->SetDefaultStyle(attr);
+    m_textrich->AppendText("mispeled");
+    attr.SetFontUnderlined(false);
+    m_textrich->SetDefaultStyle(attr);
+    m_textrich->AppendText(" word.");
+    attr.SetFontUnderlined(wxTEXT_ATTR_UNDERLINE_DOUBLE, *wxGREEN);
+    const long endPos = m_textrich->GetLastPosition();
+    m_textrich->SetStyle(endPos - 4, endPos - 2, attr);
 
     // lay out the controls
     wxBoxSizer *column1 = new wxBoxSizer(wxVERTICAL);

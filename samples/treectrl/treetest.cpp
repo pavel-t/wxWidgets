@@ -111,6 +111,7 @@ wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
     MENU_LINK(DeleteChildren)
     MENU_LINK(DeleteAll)
     MENU_LINK(Recreate)
+    MENU_LINK(FreezeThaw)
     MENU_LINK(ToggleImages)
     MENU_LINK(ToggleStates)
     MENU_LINK(ToggleBell)
@@ -261,6 +262,7 @@ MyFrame::MyFrame(const wxString& title, int x, int y, int w, int h)
     style_menu->AppendSeparator();
     style_menu->Append(TreeTest_ResetStyle, "&Reset to default\tF10");
 
+    tree_menu->AppendCheckItem(TreeTest_FreezeThaw, "&Freeze the tree");
     tree_menu->Append(TreeTest_Recreate, "&Recreate the tree");
     tree_menu->Append(TreeTest_CollapseAndReset, "C&ollapse and reset");
     tree_menu->AppendSeparator();
@@ -588,7 +590,7 @@ void MyFrame::OnDumpSelected(wxCommandEvent& WXUNUSED(event))
 
     for ( size_t n = 0; n < count; n++ )
     {
-        wxLogMessage("\t%s", m_treeCtrl->GetItemText(array.Item(n)).c_str());
+        wxLogMessage("\t%s", m_treeCtrl->GetItemText(array.Item(n)));
     }
 }
 
@@ -662,6 +664,16 @@ void MyFrame::OnDeleteChildren(wxCommandEvent& WXUNUSED(event))
 void MyFrame::OnDeleteAll(wxCommandEvent& WXUNUSED(event))
 {
     m_treeCtrl->DeleteAllItems();
+}
+
+void MyFrame::OnFreezeThaw(wxCommandEvent& event)
+{
+    if ( event.IsChecked() )
+        m_treeCtrl->Freeze();
+    else
+        m_treeCtrl->Thaw();
+
+    wxLogMessage("The tree is %sfrozen", m_treeCtrl->IsFrozen() ? "" : "not ");
 }
 
 void MyFrame::OnRecreate(wxCommandEvent& event)
@@ -1055,7 +1067,7 @@ void MyTreeCtrl::CreateStateImageList(bool del)
     AssignStateImageList(states);
 }
 
-#if USE_GENERIC_TREECTRL || !defined(__WXMSW__)
+#if USE_GENERIC_TREECTRL || (!defined(__WXMSW__) && !defined(__WXQT__))
 void MyTreeCtrl::CreateButtonsImageList(int size)
 {
     if ( size == -1 )
@@ -1306,7 +1318,7 @@ void MyTreeCtrl::LogEvent(const wxString& name, const wxTreeEvent& event)
         text << '"' << GetItemText(item).c_str() << '"';
     else
         text = "invalid item";
-    wxLogMessage("%s(%s)", name, text.c_str());
+    wxLogMessage("%s(%s)", name, text);
 }
 
 // avoid repetition
@@ -1466,7 +1478,7 @@ void LogKeyEvent(const wxString& name, const wxKeyEvent& event)
 
     wxLogMessage( "%s event: %s (flags = %c%c%c%c)",
                   name,
-                  key.c_str(),
+                  key,
                   event.ControlDown() ? 'C' : '-',
                   event.AltDown() ? 'A' : '-',
                   event.ShiftDown() ? 'S' : '-',
@@ -1491,7 +1503,7 @@ void MyTreeCtrl::OnBeginDrag(wxTreeEvent& event)
         wxPoint screenpt = ClientToScreen(clientpt);
 
         wxLogMessage("OnBeginDrag: started dragging %s at screen coords (%i,%i)",
-                     GetItemText(m_draggedItem).c_str(),
+                     GetItemText(m_draggedItem),
                      screenpt.x, screenpt.y);
 
         event.Allow();
@@ -1524,7 +1536,7 @@ void MyTreeCtrl::OnEndDrag(wxTreeEvent& event)
 
     wxString text = GetItemText(itemSrc);
     wxLogMessage("OnEndDrag: '%s' copied to '%s'.",
-                 text.c_str(), GetItemText(itemDst).c_str());
+                 text, GetItemText(itemDst));
 
     // just do append here - we could also insert it just before/after the item
     // on which it was dropped, but this requires slightly more work... we also
@@ -1712,7 +1724,7 @@ void MyTreeItemData::ShowInfo(wxTreeCtrl *tree)
 {
     wxLogMessage("Item '%s': %sselected, %sexpanded, %sbold,\n"
                  "%u children (%u immediately under this item).",
-                 m_desc.c_str(),
+                 m_desc,
                  Bool2String(tree->IsSelected(GetId())),
                  Bool2String(tree->IsExpanded(GetId())),
                  Bool2String(tree->IsBold(GetId())),

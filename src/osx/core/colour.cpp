@@ -17,6 +17,7 @@
 #endif
 
 #include "wx/osx/private.h"
+#include "wx/osx/private/available.h"
 
 CGColorSpaceRef wxMacGetGenericRGBColorSpace();
 
@@ -117,15 +118,13 @@ wxCGColorRefData::wxCGColorRefData(CGColorRef col)
     }
     else if (model != kCGColorSpaceModelRGB)
     {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_11
-        if (wxPlatformInfo::Get().CheckOSVersion(10, 11))
+        if ( WX_IS_MACOS_OR_IOS_AVAILABLE(10, 11, 9, 0) )
         {
             rgbacol = CGColorCreateCopyByMatchingToColorSpace(wxMacGetGenericRGBColorSpace(), kCGRenderingIntentDefault, col, NULL);
             noComp = CGColorGetNumberOfComponents(rgbacol);
             components = CGColorGetComponents(rgbacol);
         }
         else
-#endif
         {
             isRGB = false;
         }
@@ -189,6 +188,13 @@ wxColour::ChannelType wxColour::Alpha() const
     return wxRound(M_COLDATA->Alpha() * 255.0);
 }
 
+bool wxColour::IsSolid() const
+{
+    wxCHECK_MSG( IsOk(), false, "invalid colour" );
+
+    return M_COLDATA->IsSolid();
+}
+
 #if wxOSX_USE_COCOA_OR_CARBON
 void wxColour::GetRGBColor(RGBColor* col) const
 {
@@ -213,6 +219,13 @@ WX_NSColor wxColour::OSXGetNSColor() const
     wxCHECK_MSG( IsOk(), NULL, "invalid colour" );
 
     return M_COLDATA->GetNSColor();
+}
+
+WX_NSImage wxColour::OSXGetNSPatternImage() const
+{
+    wxCHECK_MSG( IsOk(), NULL, "invalid colour" );
+
+    return M_COLDATA->GetNSPatternImage();
 }
 #endif
 

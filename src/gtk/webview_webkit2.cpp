@@ -407,13 +407,14 @@ wxgtk_initialize_web_extensions(WebKitWebContext *context,
     GVariant *user_data = g_variant_new("(s)", address);
 
     // The first value is the location in which the extension is supposed to be
-    // normally installed, while the other two are used as fallbacks to allow
+    // normally installed, while the other three are used as fallbacks to allow
     // running the tests and sample using wxWebView before installing it.
     const char* const directories[] =
     {
         WX_WEB_EXTENSIONS_DIRECTORY,
         "..",
         "../..",
+        "lib",
     };
 
     const char* dir = NULL;
@@ -912,6 +913,10 @@ wxWebViewZoom wxWebViewWebKit::GetZoom() const
     return wxWEBVIEW_ZOOM_LARGEST;
 }
 
+float wxWebViewWebKit::GetZoomFactor() const
+{
+    return GetWebkitZoom();
+}
 
 void wxWebViewWebKit::SetZoom(wxWebViewZoom zoom)
 {
@@ -941,6 +946,11 @@ void wxWebViewWebKit::SetZoom(wxWebViewZoom zoom)
         default:
             wxFAIL;
     }
+}
+
+void wxWebViewWebKit::SetZoomFactor(float zoom)
+{
+    SetWebkitZoom(zoom);
 }
 
 void wxWebViewWebKit::SetZoomType(wxWebViewZoomType type)

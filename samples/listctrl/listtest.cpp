@@ -44,6 +44,7 @@
 #include "wx/sizer.h"
 #include "wx/sysopt.h"
 #include "wx/numdlg.h"
+#include "wx/selstore.h"
 
 #include "listtest.h"
 
@@ -150,6 +151,7 @@ wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(LIST_TOGGLE_LINES, MyFrame::OnToggleLines)
     EVT_MENU(LIST_TOGGLE_HEADER, MyFrame::OnToggleHeader)
     EVT_MENU(LIST_TOGGLE_BELL, MyFrame::OnToggleBell)
+    EVT_MENU(LIST_CHECKVISIBILITY, MyFrame::OnCheckVisibility)
 #ifdef __WXOSX__
     EVT_MENU(LIST_MAC_USE_GENERIC, MyFrame::OnToggleMacUseGeneric)
 #endif // __WXOSX__
@@ -266,6 +268,7 @@ MyFrame::MyFrame(const wxString& title)
     menuList->AppendCheckItem(LIST_TOGGLE_HEADER, "Toggle &header\tCtrl-H");
     menuList->Check(LIST_TOGGLE_HEADER, true);
     menuList->AppendCheckItem(LIST_TOGGLE_BELL, "Toggle &bell on no match");
+    menuList->Append( LIST_CHECKVISIBILITY, "Check if lines 2 and 9 are visible" );
     menuList->AppendSeparator();
     menuList->AppendCheckItem(LIST_TOGGLE_CHECKBOXES,
                               "&Enable Checkboxes");
@@ -376,6 +379,18 @@ void MyFrame::OnToggleBell(wxCommandEvent& event)
     m_listCtrl->EnableBellOnNoMatch(event.IsChecked());
 }
 
+void MyFrame::OnCheckVisibility(wxCommandEvent& WXUNUSED(event))
+{
+    if ( m_listCtrl->IsVisible(2) )
+        wxLogMessage( "Line 2 is visible" );
+    else
+        wxLogMessage( "Line 2 is not visible" );
+    if ( m_listCtrl->IsVisible(9) )
+        wxLogMessage( "Line 9 is visible" );
+    else
+        wxLogMessage( "Line 9 is not visible" );
+}
+
 #ifdef __WXOSX__
 
 void MyFrame::OnToggleMacUseGeneric(wxCommandEvent& event)
@@ -387,6 +402,12 @@ void MyFrame::OnToggleMacUseGeneric(wxCommandEvent& event)
 
 void MyFrame::OnGoTo(wxCommandEvent& WXUNUSED(event))
 {
+    if ( m_listCtrl->IsEmpty() )
+    {
+        wxLogMessage("Attempt go to item #3 when list is empty");
+        return;
+    }
+
     long index = 3;
     m_listCtrl->SetItemState(index, wxLIST_STATE_FOCUSED, wxLIST_STATE_FOCUSED);
 
@@ -411,7 +432,14 @@ void MyFrame::OnFocusLast(wxCommandEvent& WXUNUSED(event))
 
 void MyFrame::OnToggleFirstSel(wxCommandEvent& WXUNUSED(event))
 {
-    m_listCtrl->SetItemState(0, (~m_listCtrl->GetItemState(0, wxLIST_STATE_SELECTED) ) & wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+    if ( !m_listCtrl->IsEmpty() )
+    { 
+        m_listCtrl->SetItemState(0, (~m_listCtrl->GetItemState(0, wxLIST_STATE_SELECTED) ) & wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+    }
+    else
+    {
+        wxLogMessage("Attempt toggle first item when list is empty");
+    }
 }
 
 void MyFrame::OnDeselectAll(wxCommandEvent& WXUNUSED(event))
@@ -724,7 +752,7 @@ void MyFrame::OnShowSelInfo(wxCommandEvent& WXUNUSED(event))
     while ( item != -1 )
     {
         wxLogMessage("\t%ld (%s)",
-                     item, m_listCtrl->GetItemText(item).c_str());
+                     item, m_listCtrl->GetItemText(item));
 
         if ( ++shownCount > 10 )
         {
@@ -1119,7 +1147,7 @@ void MyListCtrl::OnBeginRDrag(wxListEvent& event)
 
 void MyListCtrl::OnBeginLabelEdit(wxListEvent& event)
 {
-    wxLogMessage( "OnBeginLabelEdit: %s", event.m_item.m_text.c_str());
+    wxLogMessage( "OnBeginLabelEdit: %s", event.m_item.m_text);
 
     wxTextCtrl * const text = GetEditControl();
     if ( !text )
@@ -1139,7 +1167,7 @@ void MyListCtrl::OnEndLabelEdit(wxListEvent& event)
             event.IsEditCancelled() ?
             wxString("[cancelled]") :
             event.m_item.m_text
-        ).c_str()
+        )
     );
 }
 
@@ -1167,7 +1195,7 @@ void MyListCtrl::OnSelected(wxListEvent& event)
         if ( GetItem(info) )
         {
             wxLogMessage("Value of the 2nd field of the selected item: %s",
-                         info.m_text.c_str());
+                         info.m_text);
         }
         else
         {
@@ -1204,12 +1232,22 @@ void MyListCtrl::OnChecked(wxListEvent& event)
 {
     LogEvent(event, "OnChecked");
 
+    if ( IsVirtual() )
+    {
+        CheckItem(event.GetIndex(), true);
+    }
+
     event.Skip();
 }
 
 void MyListCtrl::OnUnChecked(wxListEvent& event)
 {
     LogEvent(event, "OnUnChecked");
+
+    if ( IsVirtual() )
+    {
+        CheckItem(event.GetIndex(), false);
+    }
 
     event.Skip();
 }
@@ -1222,7 +1260,6 @@ void MyListCtrl::OnListKeyDown(wxListEvent& event)
     {
         LogEvent(event, "OnListKeyDown");
         event.Skip();
-        return;
     }
 
     switch ( event.GetKeyCode() )
@@ -1301,9 +1338,24 @@ void MyListCtrl::OnListKeyDown(wxListEvent& event)
                     break;
                 }
 
-                wxLogMessage("Bounding rect of item %ld column %d is (%d, %d)-(%d, %d)",
-                             item, subItem + 1,
-                             r.x, r.y, r.x + r.width, r.y + r.height);
+                wxString part;
+                switch ( code )
+                {
+                    case wxLIST_RECT_BOUNDS:
+                        part = "total rectangle";
+                        break;
+
+                    case wxLIST_RECT_ICON:
+                        part = "icon";
+                        break;
+
+                    case wxLIST_RECT_LABEL:
+                        part = "label";
+                        break;
+                }
+
+                wxLogMessage("Bounding rect of the %s of the item %ld column %d is (%d, %d)-(%d, %d)",
+                             part, item, subItem + 1, r.x, r.y, r.x + r.width, r.y + r.height);
             }
             break;
 
@@ -1397,7 +1449,7 @@ void MyListCtrl::OnRightClick(wxMouseEvent& event)
     }
 
     wxLogMessage("Right double click %s item %ld, subitem %ld",
-                 where.c_str(), item, subitem);
+                 where, item, subitem);
 }
 
 void MyListCtrl::LogEvent(const wxListEvent& event, const wxString& eventName)
@@ -1417,6 +1469,36 @@ wxString MyListCtrl::OnGetItemText(long item, long column) const
     {
         return wxString::Format("Column %ld of item %ld", column, item);
     }
+}
+
+void MyListCtrl::CheckItem(long item, bool check)
+{
+    if ( IsVirtual() )
+    {
+        m_checked.SelectItem(item, check);
+        RefreshItem(item);
+    }
+    else
+    {
+        wxListCtrl::CheckItem(item, check);
+    }
+}
+
+bool MyListCtrl::IsItemChecked(long item) const
+{
+    if ( IsVirtual() )
+    {
+        return m_checked.IsSelected(item);
+    }
+    else
+    {
+        return wxListCtrl::IsItemChecked(item);
+    }
+}
+
+bool MyListCtrl::OnGetItemIsChecked(long item) const
+{
+    return IsItemChecked(item);
 }
 
 int MyListCtrl::OnGetItemColumnImage(long item, long column) const
@@ -1474,7 +1556,8 @@ void MyListCtrl::OnContextMenu(wxContextMenuEvent& event)
         {
             point = ScreenToClient(point);
         }
-        ShowContextMenu(point);
+        int flags;
+        ShowContextMenu(point, HitTest(point, flags));
     }
     else
     {
@@ -1486,10 +1569,10 @@ void MyListCtrl::OnContextMenu(wxContextMenuEvent& event)
 }
 #endif
 
-void MyListCtrl::ShowContextMenu(const wxPoint& pos)
+void MyListCtrl::ShowContextMenu(const wxPoint& pos, long item)
 {
     wxMenu menu;
-
+    menu.Append(wxID_ANY, wxString::Format("Menu for item %ld", item));
     menu.Append(wxID_ABOUT, "&About");
     menu.AppendSeparator();
     menu.Append(wxID_EXIT, "E&xit");

@@ -76,34 +76,6 @@ void *wxGetDisplay()
 }
 #endif
 
-void wxDisplaySizeMM( int *width, int *height )
-{
-#ifdef __WXGTK4__
-    GdkMonitor* monitor = gdk_display_get_primary_monitor(gdk_display_get_default());
-    if (width) *width = gdk_monitor_get_width_mm(monitor);
-    if (height) *height = gdk_monitor_get_height_mm(monitor);
-#else
-    wxGCC_WARNING_SUPPRESS(deprecated-declarations)
-    if (width) *width = gdk_screen_width_mm();
-    if (height) *height = gdk_screen_height_mm();
-    wxGCC_WARNING_RESTORE()
-#endif
-}
-
-bool wxColourDisplay()
-{
-    return true;
-}
-
-int wxDisplayDepth()
-{
-#ifdef __WXGTK4__
-    return 24;
-#else
-    return gdk_visual_get_depth(gdk_window_get_visual(wxGetTopLevelGDK()));
-#endif
-}
-
 wxWindow* wxFindWindowAtPoint(const wxPoint& pt)
 {
     return wxGenericFindWindowAtPoint(pt);
@@ -114,6 +86,9 @@ wxWindow* wxFindWindowAtPoint(const wxPoint& pt)
 WXDLLIMPEXP_CORE wxCharBuffer
 wxConvertToGTK(const wxString& s, wxFontEncoding enc)
 {
+    if (s.empty())
+        return wxCharBuffer("");
+
     wxWCharBuffer wbuf;
     if ( enc == wxFONTENCODING_SYSTEM || enc == wxFONTENCODING_DEFAULT )
     {
@@ -124,7 +99,7 @@ wxConvertToGTK(const wxString& s, wxFontEncoding enc)
         wbuf = wxCSConv(enc).cMB2WC(s.c_str());
     }
 
-    if ( !wbuf && !s.empty() )
+    if (wbuf.length() == 0)
     {
         // conversion failed, but we still want to show something to the user
         // even if it's going to be wrong it is better than nothing

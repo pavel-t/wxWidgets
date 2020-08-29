@@ -32,13 +32,8 @@
 #undef new
 #endif
 
-#include "wx/ioswrap.h"
-
-#if wxUSE_IOSTREAMH
-    #include <fstream.h>
-#else
-    #include <fstream>
-#endif
+#include <iostream>
+#include <fstream>
 
 #include "wx/wfstream.h"
 #include "wx/datstrm.h"
@@ -151,14 +146,14 @@ void MyApp::DoStreamDemo(wxCommandEvent& WXUNUSED(event))
     text_output << d << "\n";
     std_file_output << d << "\n";
 
-    float f = (float)0.00001;
-    tmp.Printf( "Float: %f\n", f );
+    float f = 0.00001f;
+    tmp.Printf( "Float: %f\n", double(f) );
     textCtrl.WriteText( tmp );
     text_output << f << "\n";
     std_file_output << f << "\n";
 
     wxString str( "Hello!" );
-    tmp.Printf( "String: %s\n", str.c_str() );
+    tmp.Printf( "String: %s\n", str );
     textCtrl.WriteText( tmp );
     text_output << str << "\n";
     std_file_output << str.ToAscii() << "\n";
@@ -182,13 +177,13 @@ void MyApp::DoStreamDemo(wxCommandEvent& WXUNUSED(event))
     textCtrl.WriteText( tmp );
 
     std_file_input >> f;
-    tmp.Printf( "Float: %f\n", f );
+    tmp.Printf( "Float: %f\n", double(f) );
     textCtrl.WriteText( tmp );
 
     char std_buf[200];
     std_file_input >> std_buf;
     str = wxString::FromAscii(std_buf);
-    tmp.Printf( "String: %s\n", str.c_str() );
+    tmp.Printf( "String: %s\n", str );
     textCtrl.WriteText( tmp );
 
     textCtrl.WriteText( "\nReading from wxFileInputStream:\n" );
@@ -212,11 +207,11 @@ void MyApp::DoStreamDemo(wxCommandEvent& WXUNUSED(event))
     textCtrl.WriteText( tmp );
 
     text_input >> f;
-    tmp.Printf( "Float: %f\n", f );
+    tmp.Printf( "Float: %f\n", double(f) );
     textCtrl.WriteText( tmp );
 
     text_input >> str;
-    tmp.Printf( "String: %s\n", str.c_str() );
+    tmp.Printf( "String: %s\n", str );
     textCtrl.WriteText( tmp );
 
 
@@ -244,7 +239,7 @@ void MyApp::DoStreamDemo(wxCommandEvent& WXUNUSED(event))
     data_output.WriteDouble( d );
 
     str = "Hello!";
-    tmp.Printf( "String: %s\n", str.c_str() );
+    tmp.Printf( "String: %s\n", str );
     textCtrl.WriteText( tmp );
     data_output.WriteString( str );
 
@@ -268,7 +263,7 @@ void MyApp::DoStreamDemo(wxCommandEvent& WXUNUSED(event))
     textCtrl.WriteText( tmp );
 
     str = data_input.ReadString();
-    tmp.Printf( "String: %s\n", str.c_str() );
+    tmp.Printf( "String: %s\n", str );
     textCtrl.WriteText( tmp );
 }
 
@@ -1012,7 +1007,6 @@ void MyApp::DoVariantDemo(wxCommandEvent& WXUNUSED(event) )
     textCtrl << "var1 = " << var1.MakeString() << "\n";
 
     // Conversion
-    wxString str = var1.MakeString();
 
     var1 = 123.456;
     textCtrl << "var1 = " << var1.GetReal() << "\n";

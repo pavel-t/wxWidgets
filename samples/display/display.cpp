@@ -81,6 +81,9 @@ public:
     void OnLeftClick(wxMouseEvent& event);
 
 private:
+    // Fill m_book with the information about all the displays.
+    void PopuplateWithDisplayInfo();
+
 #if wxUSE_DISPLAY
     // convert video mode to textual description
     wxString VideoModeToText(const wxVideoMode& mode);
@@ -93,6 +96,7 @@ private:
     wxDECLARE_EVENT_TABLE();
 };
 
+#if wxUSE_DISPLAY
 // Client data class for the choice control containing the video modes
 class MyVideoModeClientData : public wxClientData
 {
@@ -101,6 +105,7 @@ public:
 
     const wxVideoMode mode;
 };
+#endif // wxUSE_DISPLAY
 
 // ----------------------------------------------------------------------------
 // constants
@@ -232,9 +237,12 @@ MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size, 
 #endif // wxUSE_STATUSBAR
 
     // create child controls
-    wxPanel *panel = new wxPanel(this, wxID_ANY);
+    m_book = new wxBookCtrl(this, wxID_ANY);
+    PopuplateWithDisplayInfo();
+}
 
-    m_book = new wxBookCtrl(panel, wxID_ANY);
+void MyFrame::PopuplateWithDisplayInfo()
+{
     const size_t countDpy = wxDisplay::GetCount();
     for ( size_t nDpy = 0; nDpy < countDpy; nDpy++ )
     {
@@ -275,6 +283,20 @@ MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size, 
                                          rc.x, rc.y, rc.width, rc.height)
                        ));
 
+        sizer->Add(new wxStaticText(page, wxID_ANY, "Resolution: "));
+        const wxSize ppi = display.GetPPI();
+        sizer->Add(new wxStaticText(page, wxID_ANY,
+                                    wxString::Format("%d*%d", ppi.x, ppi.y)));
+
+        sizer->Add(new wxStaticText(page, wxID_ANY, "Depth: "));
+        sizer->Add(new wxStaticText(page, wxID_ANY,
+                                    wxString::Format("%d", display.GetDepth())));
+
+        sizer->Add(new wxStaticText(page, wxID_ANY, "Scaling: "));
+        sizer->Add(new wxStaticText(page, wxID_ANY,
+                                    wxString::Format("%.2f",
+                                                     display.GetScaleFactor())));
+
         sizer->Add(new wxStaticText(page, wxID_ANY, "Name: "));
         sizer->Add(new wxStaticText(page, wxID_ANY, display.GetName()));
 
@@ -282,8 +304,9 @@ MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size, 
         sizer->Add(new wxStaticText(page, wxID_ANY,
                                     display.IsPrimary() ? "yes" : "no"));
 
+        // add it to another sizer to have borders around it and button below
         wxSizer *sizerTop = new wxBoxSizer(wxVERTICAL);
-        sizerTop->Add(sizer, 1, wxALL | wxEXPAND, 10);
+        sizerTop->Add(sizer, wxSizerFlags(1).Expand().DoubleBorder());
 
 #if wxUSE_DISPLAY
         wxChoice *choiceModes = new wxChoice(page, Display_ChangeMode);
@@ -296,30 +319,28 @@ MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size, 
             choiceModes->Append(VideoModeToText(mode),
                                 new MyVideoModeClientData(mode));
         }
+        const wxString currentMode = VideoModeToText(display.GetCurrentMode());
+        choiceModes->SetStringSelection(currentMode);
 
-        sizer->Add(new wxStaticText(page, wxID_ANY, "&Modes: "));
-        sizer->Add(choiceModes, 0, wxEXPAND);
+        sizer->Add(new wxStaticText(page, wxID_ANY, "&Modes: "),
+                   wxSizerFlags().CentreVertical());
+        sizer->Add(choiceModes, wxSizerFlags().Expand());
 
         sizer->Add(new wxStaticText(page, wxID_ANY, "Current: "));
-        sizer->Add(new wxStaticText(page, Display_CurrentMode,
-                                    VideoModeToText(display.GetCurrentMode())));
+        sizer->Add(new wxStaticText(page, Display_CurrentMode, currentMode));
 
-        // add it to another sizer to have borders around it and button below
         sizerTop->Add(new wxButton(page, Display_ResetMode, "&Reset mode"),
-                      0, wxALL | wxCENTRE, 5);
+                      wxSizerFlags().Centre().Border());
 #endif // wxUSE_DISPLAY
 
         page->SetSizer(sizerTop);
+        page->Layout();
 
-        m_book->AddPage(page,
-                        wxString::Format("Display %lu",
-                                         (unsigned long)nDpy));
+        m_book->AddPage(page, wxString::Format("Display %zu", nDpy + 1));
     }
 
-    wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(m_book, 1, wxEXPAND);
-    panel->SetSizer(sizer);
-    sizer->SetSizeHints(this);
+    SetClientSize(m_book->GetBestSize());
+    SetMinSize(GetSize());
 }
 
 #if wxUSE_DISPLAY
@@ -421,16 +442,8 @@ void MyFrame::OnLeftClick(wxMouseEvent& event)
 
 void MyFrame::OnDisplayChanged(wxDisplayChangedEvent& event)
 {
-    // update the current mode text
-    for ( size_t n = 0; n < m_book->GetPageCount(); n++ )
-    {
-        wxStaticText *label = wxDynamicCast(m_book->GetPage(n)->
-                                                FindWindow(Display_CurrentMode),
-                                            wxStaticText);
-        if ( label )
-            label->SetLabel(VideoModeToText(wxDisplay(n).GetCurrentMode()));
-    }
-
+    m_book->DeleteAllPages();
+    PopuplateWithDisplayInfo();
 
     wxLogStatus(this, "Display resolution was changed.");
 

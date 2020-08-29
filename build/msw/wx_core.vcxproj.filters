@@ -603,6 +603,9 @@
     <ClCompile Include="..\..\src\generic\richtooltipg.cpp">
       <Filter>Generic Sources</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\generic\rowheightcache.cpp">
+      <Filter>Generic Sources</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\generic\sashwin.cpp">
       <Filter>Generic Sources</Filter>
     </ClCompile>
@@ -1103,6 +1106,9 @@
       <Filter>Common Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\appprogress.h">
+      <Filter>Common Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\artids.h">
       <Filter>Common Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\artprov.h">

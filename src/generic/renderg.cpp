@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.07.2003
-// Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -106,7 +106,16 @@ public:
                               const wxRect& rect,
                               int flags = 0) wxOVERRIDE;
 
-    virtual wxSize GetCheckBoxSize(wxWindow *win) wxOVERRIDE;
+    virtual void DrawCheckMark(wxWindow *win,
+                               wxDC& dc,
+                               const wxRect& rect,
+                               int flags = 0) wxOVERRIDE;
+
+    virtual wxSize GetCheckBoxSize(wxWindow *win, int flags = 0) wxOVERRIDE;
+
+    virtual wxSize GetCheckMarkSize(wxWindow *win) wxOVERRIDE;
+
+    virtual wxSize GetExpanderSize(wxWindow *win) wxOVERRIDE;
 
     virtual void DrawPushButton(wxWindow *win,
                                 wxDC& dc,
@@ -194,7 +203,7 @@ static void DrawSelectedCellFocusRect(wxDC& dc, const wxRect& rect)
 {
     // (This code is based on wxRendererGeneric::DrawFocusRect and modified.)
 
-    // draw the pixels manually because the "dots" in wxPen with wxDOT style
+    // draw the pixels manually because the "dots" in wxPen with wxPENSTYLE_DOT style
     // may be short traits and not really dots
     //
     // note that to behave in the same manner as DrawRect(), we must exclude
@@ -712,8 +721,32 @@ wxRendererGeneric::DrawCheckBox(wxWindow *WXUNUSED(win),
     }
 }
 
-wxSize wxRendererGeneric::GetCheckBoxSize(wxWindow *win)
+void
+wxRendererGeneric::DrawCheckMark(wxWindow *WXUNUSED(win),
+                                 wxDC& dc,
+                                 const wxRect& rect,
+                                 int flags)
 {
+    dc.SetPen(*(flags & wxCONTROL_DISABLED ? wxGREY_PEN : wxBLACK_PEN));
+    dc.DrawCheckMark(rect);
+}
+
+wxSize wxRendererGeneric::GetCheckBoxSize(wxWindow *win, int WXUNUSED(flags))
+{
+    wxCHECK_MSG( win, wxSize(0, 0), "Must have a valid window" );
+
+    return win->FromDIP(wxSize(16, 16));
+}
+
+wxSize wxRendererGeneric::GetCheckMarkSize(wxWindow *win)
+{
+    return GetCheckBoxSize(win, wxCONTROL_CELL);
+}
+
+wxSize wxRendererGeneric::GetExpanderSize(wxWindow *win)
+{
+    wxCHECK_MSG( win, wxSize(0, 0), "Must have a valid window" );
+
     return win->FromDIP(wxSize(16, 16));
 }
 
@@ -814,7 +847,7 @@ wxRendererGeneric::DrawItemSelectionRect(wxWindow * WXUNUSED(win),
 void
 wxRendererGeneric::DrawFocusRect(wxWindow* WXUNUSED(win), wxDC& dc, const wxRect& rect, int WXUNUSED(flags))
 {
-    // draw the pixels manually because the "dots" in wxPen with wxDOT style
+    // draw the pixels manually because the "dots" in wxPen with wxPENSTYLE_DOT style
     // may be short traits and not really dots
     //
     // note that to behave in the same manner as DrawRect(), we must exclude

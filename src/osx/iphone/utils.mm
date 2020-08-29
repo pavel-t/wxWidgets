@@ -130,12 +130,6 @@ wxMouseState wxGetMouseState()
     return ms;
 }    
 
-// Returns depth of screen
-int wxDisplayDepth()
-{
-    return 32; // TODO can we determine this ?
-}
-
 // Get size of display
 
 class wxDisplayImplSingleiOS : public wxDisplayImplSingle
@@ -160,6 +154,16 @@ public:
         }
 
         return wxRect(0, 0, width, height);
+    }
+
+    virtual int GetDepth() const wxOVERRIDE
+    {
+        return 32; // TODO can we determine this ?
+    }
+
+    virtual wxSize GetPPI() const wxOVERRIDE
+    {
+        return wxSize(72, 72);
     }
 };
 
@@ -253,7 +257,7 @@ wxBitmap wxWindowDCImpl::DoGetAsBitmap(const wxRect *subrect) const
         CGContextTranslateCTM( context, -subrect->x, -subrect->y ) ;
 
     UIGraphicsPushContext(context);
-    [ (NSView*) m_window->GetHandle() drawRect:CGRectMake(left, top, width, height ) ];
+    [ (UIView*) m_window->GetHandle() drawRect:CGRectMake(left, top, width, height ) ];
     UIGraphicsPopContext();
     CGContextRestoreGState(context);
 

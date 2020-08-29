@@ -108,7 +108,9 @@ wxBEGIN_EVENT_TABLE(SimpleTransientPopup,wxPopupTransientWindow)
 wxEND_EVENT_TABLE()
 
 SimpleTransientPopup::SimpleTransientPopup( wxWindow *parent, bool scrolled )
-                     :wxPopupTransientWindow( parent )
+                     :wxPopupTransientWindow( parent,
+                                              wxBORDER_NONE |
+                                              wxPU_CONTAINS_CONTROLS )
 {
     m_panel = new wxScrolledWindow( this, wxID_ANY );
     m_panel->SetBackgroundColour( *wxLIGHT_GREY );
@@ -135,6 +137,8 @@ SimpleTransientPopup::SimpleTransientPopup( wxWindow *parent, bool scrolled )
     topSizer->Add( text, 0, wxALL, 5 );
     topSizer->Add( m_button, 0, wxALL, 5 );
     topSizer->Add( m_spinCtrl, 0, wxALL, 5 );
+    topSizer->Add( new wxTextCtrl(m_panel, wxID_ANY, "Try to type here"),
+                   0, wxEXPAND|wxALL, 5 );
     topSizer->Add( m_mouseText, 0, wxCENTRE|wxALL, 5 );
 
     if ( scrolled )

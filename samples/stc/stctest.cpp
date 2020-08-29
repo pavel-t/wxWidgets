@@ -63,12 +63,6 @@
 #define APP_LICENCE "wxWidgets"
 
 #define APP_VERSION "0.1.alpha"
-#define APP_BUILD __DATE__
-
-#define APP_WEBSITE "http://www.wxWidgets.org"
-#define APP_MAIL "mailto://???"
-
-#define NONAME _("<untitled>")
 
 class AppBook;
 
@@ -132,12 +126,8 @@ public:
     void OnClose (wxCloseEvent &event);
     void OnAbout (wxCommandEvent &event);
     void OnExit (wxCommandEvent &event);
-    void OnTimerEvent (wxTimerEvent &event);
     //! file
-    void OnFileNew (wxCommandEvent &event);
-    void OnFileNewFrame (wxCommandEvent &event);
     void OnFileOpen (wxCommandEvent &event);
-    void OnFileOpenFrame (wxCommandEvent &event);
     void OnFileSave (wxCommandEvent &event);
     void OnFileSaveAs (wxCommandEvent &event);
     void OnFileClose (wxCommandEvent &event);
@@ -291,8 +281,7 @@ wxBEGIN_EVENT_TABLE (AppFrame, wxFrame)
 wxEND_EVENT_TABLE ()
 
 AppFrame::AppFrame (const wxString &title)
-        : wxFrame ((wxFrame *)NULL, wxID_ANY, title, wxDefaultPosition, wxSize(750,550),
-                    wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE)
+        : wxFrame ((wxFrame *)NULL, wxID_ANY, title, wxDefaultPosition, wxSize(750,550))
 {
     SetIcon(wxICON(sample));
 
@@ -362,7 +351,7 @@ void AppFrame::OnFileSave (wxCommandEvent &WXUNUSED(event)) {
 void AppFrame::OnFileSaveAs (wxCommandEvent &WXUNUSED(event)) {
     if (!m_edit) return;
 #if wxUSE_FILEDLG
-    wxString filename = wxEmptyString;
+    wxString filename;
     wxFileDialog dlg (this, "Save file", wxEmptyString, wxEmptyString, "Any file (*)|*", wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
     if (dlg.ShowModal() != wxID_OK) return;
     filename = dlg.GetPath();
@@ -583,12 +572,17 @@ void AppFrame::CreateMenu ()
     menuExtra->AppendCheckItem(myID_MULTI_PASTE, _("Toggle multi-&paste"));
     menuExtra->AppendCheckItem(myID_MULTIPLE_SELECTIONS_TYPING, _("Toggle t&yping on multiple selections"));
     menuExtra->AppendSeparator();
-    menuExtra->AppendCheckItem (myID_CUSTOM_POPUP, _("C&ustom popup menu"));
+#if defined(__WXMSW__) && wxUSE_GRAPHICS_DIRECT2D
+    wxMenu* menuTechnology = new wxMenu;
+    menuTechnology->AppendRadioItem(myID_TECHNOLOGY_DEFAULT, _("&Default"));
+    menuTechnology->AppendRadioItem(myID_TECHNOLOGY_DIRECTWRITE, _("Direct&Write"));
+    menuExtra->AppendSubMenu(menuTechnology, _("&Technology"));
+    menuExtra->AppendSeparator();
+#endif
+    menuExtra->AppendCheckItem (myID_CUSTOM_POPUP, _("C&ustom context menu"));
 
     // Window menu
     wxMenu *menuWindow = new wxMenu;
-    menuWindow->Append (myID_PAGEPREV, _("&Previous\tCtrl+Shift+Tab"));
-    menuWindow->Append (myID_PAGENEXT, _("&Next\tCtrl+Tab"));
     menuWindow->Append(myID_WINDOW_MINIMAL, _("&Minimal editor"));
 
     // Help menu
@@ -764,7 +758,7 @@ public:
     }
     virtual bool SetFont(const wxFont& font) wxOVERRIDE
     {
-        StyleSetFont(wxSTC_STYLE_DEFAULT, (wxFont&)font);
+        StyleSetFont(wxSTC_STYLE_DEFAULT, font);
         return wxStyledTextCtrl::SetFont(font);
     }
     void SetLexerXml()
@@ -780,7 +774,7 @@ public:
         StyleSetForeground(wxSTC_H_DOUBLESTRING, *wxBLACK);
         StyleSetForeground(wxSTC_H_SINGLESTRING, *wxBLACK);
         StyleSetForeground(wxSTC_H_OTHER, *wxBLUE);
-        StyleSetForeground(wxSTC_H_COMMENT, wxTheColourDatabase->Find("GREY"));
+        StyleSetForeground(wxSTC_H_COMMENT, wxColour("GREY"));
         StyleSetForeground(wxSTC_H_ENTITY, *wxRED);
         StyleSetBold(wxSTC_H_ENTITY, true);
         StyleSetForeground(wxSTC_H_TAGEND, *wxBLUE);
@@ -824,7 +818,7 @@ public:
     MinimalEditorFrame() : wxFrame(NULL, wxID_ANY, _("Minimal Editor"))
     {
         MinimalEditor* editor = new MinimalEditor(this);
-        editor->SetFont(wxSystemSettings::GetFont(wxSYS_ANSI_FIXED_FONT));
+        editor->SetFont(wxFontInfo().Family(wxFONTFAMILY_TELETYPE));
         wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(editor, 1, wxEXPAND);
         SetSizer(sizer);

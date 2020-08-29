@@ -52,10 +52,11 @@ wxAuiFloatingFrame::wxAuiFloatingFrame(wxWindow* parent,
                         (pane.HasMaximizeButton()?wxMAXIMIZE_BOX:0) |
                         (pane.IsFixed()?0:wxRESIZE_BORDER)
                         )
+    , m_ownerMgr(owner_mgr)
 {
-    m_ownerMgr = owner_mgr;
     m_moving = false;
     m_mgr.SetManagedWindow(this);
+    m_mgr.SetArtProvider(owner_mgr->GetArtProvider()->Clone());
     m_solidDrag = true;
 
     // find out if the system supports solid window drag.

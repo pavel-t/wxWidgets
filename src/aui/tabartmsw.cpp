@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        wx/aui/tabartmsw.h
-// Purpose:     wxAuiMSWTabArt declaration
+// Name:        src/aui/tabartmsw.cpp
+// Purpose:     wxAuiMSWTabArt implementation
 // Author:      Tobias Taschner
 // Created:     2015-09-26
 // Copyright:   (c) 2015 wxWidgets development team
@@ -13,8 +13,11 @@
 #pragma hdrstop
 #endif
 
+#if wxUSE_AUI && wxUSE_UXTHEME && !defined(__WXUNIVERSAL__)
+
 #ifndef WX_PRECOMP
     #include "wx/dc.h"
+    #include "wx/settings.h"
 #endif
 
 #include "wx/aui/tabart.h"
@@ -22,8 +25,6 @@
 #include "wx/msw/uxtheme.h"
 #include "wx/msw/private.h"
 #include "wx/renderer.h"
-
-#if wxUSE_AUI
 
 wxAuiMSWTabArt::wxAuiMSWTabArt()
 {
@@ -213,6 +214,7 @@ void wxAuiMSWTabArt::DrawTab(wxDC& dc,
         textRect.width -= m_closeBtnSize.x + wnd->FromDIP(3);
 
     dc.SetFont(wnd->GetFont());
+    dc.SetTextForeground(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
     dc.DrawLabel(page.caption, page.bitmap, textRect, wxALIGN_CENTRE);
 
     // draw focus rectangle
@@ -469,4 +471,4 @@ bool wxAuiMSWTabArt::IsThemed() const
 }
 
 
-#endif // wxUSE_AUI
+#endif // wxUSE_AUI && wxUSE_UXTHEME && !defined(__WXUNIVERSAL__)

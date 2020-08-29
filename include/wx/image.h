@@ -190,7 +190,7 @@ WX_DECLARE_EXPORTED_HASH_MAP(unsigned long, wxImageHistogramEntry,
                              wxIntegerHash, wxIntegerEqual,
                              wxImageHistogramBase);
 
-class WXDLLIMPEXP_CORE wxImageHistogram : public wxImageHistogramBase
+class wxImageHistogram : public wxImageHistogramBase
 {
 public:
     wxImageHistogram() : wxImageHistogramBase(256) { }
@@ -211,9 +211,43 @@ public:
     bool FindFirstUnusedColour(unsigned char *r,
                                unsigned char *g,
                                unsigned char *b,
-                               unsigned char startR = 1,
-                               unsigned char startG = 0,
-                               unsigned char startB = 0 ) const;
+                               unsigned char r2 = 1,
+                               unsigned char g2 = 0,
+                               unsigned char b2 = 0 ) const
+    {
+        unsigned long key = MakeKey(r2, g2, b2);
+
+        while ( find(key) != end() )
+        {
+            // color already used
+            r2++;
+            if ( r2 >= 255 )
+            {
+                r2 = 0;
+                g2++;
+                if ( g2 >= 255 )
+                {
+                    g2 = 0;
+                    b2++;
+                    if ( b2 >= 255 )
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            key = MakeKey(r2, g2, b2);
+        }
+
+        if ( r )
+            *r = r2;
+        if ( g )
+            *g = g2;
+        if ( b )
+            *b = b2;
+
+        return true;
+    }
 };
 
 //-----------------------------------------------------------------------------
@@ -360,7 +394,7 @@ public:
     // Convert to greyscale image. Uses the luminance component (Y) of the image.
     // The luma value (YUV) is calculated using (R * weight_r) + (G * weight_g) + (B * weight_b), defaults to ITU-T BT.601
     wxImage ConvertToGreyscale(double weight_r, double weight_g, double weight_b) const;
-    wxImage ConvertToGreyscale(void) const;
+    wxImage ConvertToGreyscale() const;
 
     // convert to monochrome image (<r,g,b> will be replaced by white,
     // everything else by black)
@@ -401,7 +435,7 @@ public:
     // (actually shades of grey) typically when you draw anti-
     // aliased text into a bitmap. The DC drawinf routines
     // draw grey values on the black background although they
-    // actually mean to draw white with differnt alpha values.
+    // actually mean to draw white with different alpha values.
     // This method reverses it, assuming a black (!) background
     // and white text (actually only the red channel is read).
     // The method will then fill up the whole image with the

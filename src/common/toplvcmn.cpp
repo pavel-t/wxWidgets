@@ -249,8 +249,7 @@ void wxTopLevelWindowBase::DoCentre(int dir)
     // we need the display rect anyhow so store it first: notice that we should
     // be centered on the same display as our parent window, the display of
     // this window itself is not really defined yet
-    int nDisplay = wxDisplay::GetFromWindow(GetParent() ? GetParent() : this);
-    wxDisplay dpy(nDisplay == wxNOT_FOUND ? 0 : nDisplay);
+    wxDisplay dpy(GetParent() ? GetParent() : this);
     const wxRect rectDisplay(dpy.GetClientArea());
 
     // what should we centre this window on?
@@ -412,20 +411,25 @@ bool wxTopLevelWindowBase::IsTopNavigationDomain(NavigationKind kind) const
 
 // default resizing behaviour - if only ONE subwindow, resize to fill the
 // whole client area
-void wxTopLevelWindowBase::DoLayout()
+bool wxTopLevelWindowBase::Layout()
 {
     // We are called during the window destruction several times, e.g. as
     // wxFrame tries to adjust to its tool/status bars disappearing. But
     // actually doing the layout is pretty useless in this case as the window
     // will disappear anyhow -- so just don't bother.
     if ( IsBeingDeleted() )
-        return;
+        return false;
 
 
-    // if we're using constraints or sizers - do use them
-    if ( GetAutoLayout() )
+    // if we're using sizers or constraints - do use them
+    if ( GetAutoLayout()
+            || GetSizer()
+#if wxUSE_CONSTRAINTS
+                    || GetConstraints()
+#endif
+                                        )
     {
-        Layout();
+        return wxNonOwnedWindow::Layout();
     }
     else
     {
@@ -444,7 +448,7 @@ void wxTopLevelWindowBase::DoLayout()
             {
                 if ( child )
                 {
-                    return;     // it's our second subwindow - nothing to do
+                    return false; // it's our second subwindow - nothing to do
                 }
 
                 child = win;
@@ -459,8 +463,12 @@ void wxTopLevelWindowBase::DoLayout()
             DoGetClientSize(&clientW, &clientH);
 
             child->SetSize(0, 0, clientW, clientH);
+
+            return true;
         }
     }
+
+    return false;
 }
 
 // The default implementation for the close window event.

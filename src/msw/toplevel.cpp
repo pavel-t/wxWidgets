@@ -37,7 +37,6 @@
     #include "wx/module.h"
 #endif //WX_PRECOMP
 
-#include "wx/dynlib.h"
 #include "wx/scopeguard.h"
 #include "wx/tooltip.h"
 
@@ -291,6 +290,22 @@ WXLRESULT wxTopLevelWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WX
 
                     DoRestoreLastFocus();
                 }
+                else if ( id == SC_KEYMENU )
+                {
+                    // Alt-Backspace is understood as an accelerator for "Undo"
+                    // by the native EDIT control, but pressing it results in a
+                    // beep by default when the resulting SC_KEYMENU is handled
+                    // by DefWindowProc(), so pretend to handle it ourselves if
+                    // we're editing a text control to avoid the annoying beep.
+                    if ( lParam == VK_BACK )
+                    {
+                        if ( wxWindow* const focus = FindFocus() )
+                        {
+                            if ( focus->WXGetTextEntry() )
+                                processed = true;
+                        }
+                    }
+                }
 
 #ifndef __WXUNIVERSAL__
                 // We need to generate events for the custom items added to the
@@ -326,7 +341,7 @@ bool wxTopLevelWindowMSW::CreateDialog(const void *dlgTemplate,
     m_hWnd = (WXHWND)::CreateDialogIndirect
                        (
                         wxGetInstance(),
-                        (DLGTEMPLATE*)dlgTemplate,
+                        static_cast<const DLGTEMPLATE*>(dlgTemplate),
                         parent ? GetHwndOf(parent) : NULL,
                         (DLGPROC)wxDlgProc
                        );
@@ -484,6 +499,8 @@ bool wxTopLevelWindowMSW::Create(wxWindow *parent,
         EnableCloseButton(false);
     }
 
+    InheritAttributes();
+
     // for standard dialogs the dialog manager generates WM_CHANGEUISTATE
     // itself but for custom windows we have to do it ourselves in order to
     // make the keyboard indicators (such as underlines for accelerators and
@@ -498,19 +515,6 @@ wxTopLevelWindowMSW::~wxTopLevelWindowMSW()
     delete m_menuSystem;
 
     SendDestroyEvent();
-
-    // after destroying an owned window, Windows activates the next top level
-    // window in Z order but it may be different from our owner (to reproduce
-    // this simply Alt-TAB to another application and back before closing the
-    // owned frame) whereas we always want to yield activation to our parent
-    if ( HasFlag(wxFRAME_FLOAT_ON_PARENT) )
-    {
-        wxWindow *parent = GetParent();
-        if ( parent )
-        {
-            ::BringWindowToTop(GetHwndOf(parent));
-        }
-    }
 }
 
 // ----------------------------------------------------------------------------
@@ -519,6 +523,26 @@ wxTopLevelWindowMSW::~wxTopLevelWindowMSW()
 
 void wxTopLevelWindowMSW::DoShowWindow(int nShowCmd)
 {
+    // After hiding or minimizing an owned window, Windows activates the next
+    // top level window in Z order but it may be different from our owner (to
+    // reproduce this simply Alt-TAB to another application and back before
+    // closing the owned frame) whereas we always want to yield activation to
+    // our parent, so do it explicitly _before_ yielding activation.
+    switch ( nShowCmd )
+    {
+        case SW_HIDE:
+        case SW_MINIMIZE:
+            if ( HasFlag(wxFRAME_FLOAT_ON_PARENT) )
+            {
+                wxWindow *parent = GetParent();
+                if ( parent )
+                {
+                    ::BringWindowToTop(GetHwndOf(parent));
+                }
+            }
+            break;
+    }
+
     ::ShowWindow(GetHwnd(), nShowCmd);
 
 #if wxUSE_TOOLTIPS
@@ -579,6 +603,15 @@ bool wxTopLevelWindowMSW::Show(bool show)
     }
     else // hide
     {
+        // When hiding the window, remember if it was maximized or iconized in
+        // order to return the correct value from Is{Maximized,Iconized}().
+        if ( ::IsZoomed(GetHwnd()) )
+            m_showCmd = SW_MAXIMIZE;
+        else if ( ::IsIconic(GetHwnd()) )
+            m_showCmd = SW_MINIMIZE;
+        else
+            m_showCmd = SW_SHOW;
+
         nShowCmd = SW_HIDE;
     }
 
@@ -595,6 +628,16 @@ bool wxTopLevelWindowMSW::Show(bool show)
 #endif // wxUSE_DEFERRED_SIZING
 
     DoShowWindow(nShowCmd);
+
+    if ( show && nShowCmd == SW_MAXIMIZE )
+    {
+        // We don't receive WM_SHOWWINDOW when shown in the maximized state,
+        // cf. https://docs.microsoft.com/en-us/windows/desktop/winmsg/wm-showwindow
+        // and so we have to issue the event ourselves in this case.
+        wxShowEvent event(GetId(), true);
+        event.SetEventObject(this);
+        AddPendingEvent(event);
+    }
 
     return true;
 }
@@ -718,6 +761,22 @@ void wxTopLevelWindowMSW::Restore()
     DoShowWindow(SW_RESTORE);
 }
 
+bool wxTopLevelWindowMSW::Destroy()
+{
+    if ( !wxTopLevelWindowBase::Destroy() )
+        return false;
+
+    // Under Windows 10 iconized windows don't get any messages, so delayed
+    // destruction doesn't work for them if we don't force a message dispatch
+    // here (and it doesn't seem useful to test for MSWIsIconized() as doing
+    // this doesn't do any harm for non-iconized windows neither). For that
+    // matter, doing this shouldn't do any harm under previous OS versions
+    // neither, so checking for the OS version doesn't seem useful too.
+    wxWakeUpIdle();
+
+    return true;
+}
+
 void wxTopLevelWindowMSW::SetLayoutDirection(wxLayoutDirection dir)
 {
     if ( dir == wxLayout_Default )
@@ -747,8 +806,7 @@ void wxTopLevelWindowMSW::DoGetPosition(int *x, int *y) const
             {
                 // we must use the correct display for the translation as the
                 // task bar might be shown on one display but not the other one
-                int n = wxDisplay::GetFromWindow(this);
-                wxDisplay dpy(n == wxNOT_FOUND ? 0 : n);
+                wxDisplay dpy(this);
                 const wxPoint ptOfs = dpy.GetClientArea().GetPosition() -
                                       dpy.GetGeometry().GetPosition();
 
@@ -907,11 +965,7 @@ bool wxTopLevelWindowMSW::ShowFullScreen(bool show, long style)
 
         // resize to the size of the display containing us, falling back to the
         // primary one
-        int dpy = wxDisplay::GetFromWindow(this);
-        if ( dpy == wxNOT_FOUND )
-            dpy = 0;
-
-        const wxRect rect = wxDisplay(dpy).GetGeometry();
+        const wxRect rect = wxDisplay(this).GetGeometry();
 
         SetSize(rect);
 
@@ -970,7 +1024,7 @@ bool wxTopLevelWindowMSW::DoSelectAndSetIcon(const wxIconBundle& icons,
                                              int smY,
                                              int i)
 {
-    const wxSize size(::GetSystemMetrics(smX), ::GetSystemMetrics(smY));
+    const wxSize size(wxGetSystemMetrics(smX, this), wxGetSystemMetrics(smY, this));
 
     wxIcon icon = icons.GetIcon(size, wxIconBundle::FALLBACK_NEAREST_LARGER);
 

@@ -544,7 +544,7 @@ const wxColour* wxStockGDI::GetColour(Item item)
             colour = new wxColour(0, 0, 255);
             break;
         case COLOUR_CYAN:
-            colour = new wxColour(wxT("CYAN"));
+            colour = new wxColour(0, 255, 255);
             break;
         case COLOUR_GREEN:
             colour = new wxColour(0, 255, 0);
@@ -553,7 +553,7 @@ const wxColour* wxStockGDI::GetColour(Item item)
             colour = new wxColour(255, 255, 0);
             break;
         case COLOUR_LIGHTGREY:
-            colour = new wxColour(wxT("LIGHT GREY"));
+            colour = new wxColour(192, 192, 192);
             break;
         case COLOUR_RED:
             colour = new wxColour(255, 0, 0);
@@ -845,6 +845,18 @@ wxFont *wxFontList::FindOrCreateFont(int pointSize,
     return font;
 }
 
+int wxDisplayDepth()
+{
+    return wxDisplay().GetDepth();
+}
+
+bool wxColourDisplay()
+{
+    // If GetDepth() returns 0, meaning unknown, we assume it's a colour
+    // display, hence the use of "!=" rather than ">" here.
+    return wxDisplay().GetDepth() != 1;
+}
+
 void wxDisplaySize(int *width, int *height)
 {
     const wxSize size = wxGetDisplaySize();
@@ -877,20 +889,29 @@ wxRect wxGetClientDisplayRect()
     return wxDisplay().GetClientArea();
 }
 
+void wxDisplaySizeMM(int *width, int *height)
+{
+    const wxSize size = wxGetDisplaySizeMM();
+    if ( width )
+        *width = size.x;
+    if ( height )
+        *height = size.y;
+}
+
 wxSize wxGetDisplaySizeMM()
 {
-    int x, y;
-    wxDisplaySizeMM(& x, & y);
-    return wxSize(x, y);
+    const wxSize ppi = wxGetDisplayPPI();
+    if ( !ppi.x || !ppi.y )
+        return wxSize(0, 0);
+
+    const wxSize pixels = wxGetDisplaySize();
+    return wxSize(wxRound(pixels.x * inches2mm / ppi.x),
+                  wxRound(pixels.y * inches2mm / ppi.y));
 }
 
 wxSize wxGetDisplayPPI()
 {
-    const wxSize pixels = wxGetDisplaySize();
-    const wxSize mm = wxGetDisplaySizeMM();
-
-    return wxSize((int)((pixels.x * inches2mm) / mm.x),
-                  (int)((pixels.y * inches2mm) / mm.y));
+    return wxDisplay().GetPPI();
 }
 
 wxResourceCache::~wxResourceCache ()

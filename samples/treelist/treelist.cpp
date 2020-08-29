@@ -373,7 +373,7 @@ void MyFrame::InitImageList()
     m_imageList = new wxImageList(iconSize.x, iconSize.y);
 
     // The order should be the same as for the enum elements.
-    static const char* const icons[] =
+    static const wxString icons[] =
     {
         wxART_NORMAL_FILE,
         wxART_FOLDER,
@@ -695,7 +695,7 @@ void MyFrame::OnItemContextMenu(wxTreeListEvent& event)
 
         default:
             wxFAIL_MSG( "Unexpected menu selection" );
-            // Fall through.
+            wxFALLTHROUGH;
 
         case wxID_NONE:
             return;

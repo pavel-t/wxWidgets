@@ -91,9 +91,9 @@ void wxNativeFontInfo::Free()
         pango_font_description_free(description);
 }
 
-float wxNativeFontInfo::GetFractionalPointSize() const
+double wxNativeFontInfo::GetFractionalPointSize() const
 {
-    return ((float) pango_font_description_get_size( description )) / PANGO_SCALE;
+    return double(pango_font_description_get_size(description)) / PANGO_SCALE;
 }
 
 wxFontStyle wxNativeFontInfo::GetStyle() const
@@ -215,7 +215,7 @@ wxFontEncoding wxNativeFontInfo::GetEncoding() const
     return wxFONTENCODING_SYSTEM;
 }
 
-void wxNativeFontInfo::SetFractionalPointSize(float pointsize)
+void wxNativeFontInfo::SetFractionalPointSize(double pointsize)
 {
     pango_font_description_set_size( description, wxRound(pointsize * PANGO_SCALE) );
 }
@@ -489,7 +489,7 @@ static wxHashTable *g_fontHash = NULL;
 
 static bool wxTestFontSpec(const wxString& fontspec);
 
-static wxNativeFont wxLoadQueryFont(float pointSize,
+static wxNativeFont wxLoadQueryFont(double pointSize,
                                     wxFontFamily family,
                                     wxFontStyle style,
                                     int weight,
@@ -693,7 +693,7 @@ void wxNativeFontInfo::SetXFontName(const wxString& xFontName_)
     m_isDefault = false;
 }
 
-float wxNativeFontInfo::GetFractionalPointSize() const
+double wxNativeFontInfo::GetFractionalPointSize() const
 {
     const wxString s = GetXFontComponent(wxXLFD_POINTSIZE);
 
@@ -785,7 +785,7 @@ wxFontEncoding wxNativeFontInfo::GetEncoding() const
     return wxFONTENCODING_MAX;
 }
 
-void wxNativeFontInfo::SetFractionalPointSize(float pointsize)
+void wxNativeFontInfo::SetFractionalPointSize(double pointsize)
 {
     wxString s;
     if ( pointsize < 0 )
@@ -1029,7 +1029,7 @@ bool wxTestFontEncoding(const wxNativeEncodingInfo& info)
 // X-specific functions
 // ----------------------------------------------------------------------------
 
-wxNativeFont wxLoadQueryNearestFont(float pointSize,
+wxNativeFont wxLoadQueryNearestFont(double pointSize,
                                     wxFontFamily family,
                                     wxFontStyle style,
                                     int weight,
@@ -1252,7 +1252,7 @@ static bool wxTestFontSpec(const wxString& fontspec)
     }
 }
 
-static wxNativeFont wxLoadQueryFont(float pointSize,
+static wxNativeFont wxLoadQueryFont(double pointSize,
                                     wxFontFamily family,
                                     wxFontStyle style,
                                     int weight,
@@ -1317,11 +1317,11 @@ static wxNativeFont wxLoadQueryFont(float pointSize,
     logFont.lfCharSet = MWLF_CHARSET_DEFAULT; // TODO: select appropriate one
     logFont.lfOutPrecision = MWLF_TYPE_DEFAULT;
     logFont.lfClipPrecision = 0; // Not used
-    logFont.lfRoman = (family == wxROMAN ? 1 : 0) ;
-    logFont.lfSerif = (family == wxSWISS ? 0 : 1) ;
+    logFont.lfRoman = (family == wxFONTFAMILY_ROMAN ? 1 : 0) ;
+    logFont.lfSerif = (family == wxFONTFAMILY_SWISS ? 0 : 1) ;
     logFont.lfSansSerif = !logFont.lfSerif ;
-    logFont.lfModern = (family == wxMODERN ? 1 : 0) ;
-    logFont.lfProportional = (family == wxTELETYPE ? 0 : 1) ;
+    logFont.lfModern = (family == wxFONTFAMILY_MODERN ? 1 : 0) ;
+    logFont.lfProportional = (family == wxFONTFAMILY_TELETYPE ? 0 : 1) ;
     logFont.lfOblique = 0;
     logFont.lfSmallCaps = 0;
     logFont.lfPitch = 0; // 0 = default

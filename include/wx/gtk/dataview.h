@@ -112,7 +112,7 @@ public:
            const wxPoint& pos = wxDefaultPosition,
            const wxSize& size = wxDefaultSize, long style = 0,
            const wxValidator& validator = wxDefaultValidator,
-           const wxString& name = wxDataViewCtrlNameStr )
+           const wxString& name = wxASCII_STR(wxDataViewCtrlNameStr) )
     {
         Init();
 
@@ -123,7 +123,7 @@ public:
            const wxPoint& pos = wxDefaultPosition,
            const wxSize& size = wxDefaultSize, long style = 0,
            const wxValidator& validator = wxDefaultValidator,
-           const wxString& name = wxDataViewCtrlNameStr);
+           const wxString& name = wxASCII_STR(wxDataViewCtrlNameStr));
 
     virtual ~wxDataViewCtrl();
 
@@ -185,6 +185,12 @@ public:
     // failed.
     wxDataViewItem GTKPathToItem(struct _GtkTreePath *path) const;
 
+    // Return wxDataViewColumn matching the given GtkTreeViewColumn.
+    //
+    // If the input argument is NULL, return NULL too. Otherwise we must find
+    // the matching column and assert if we didn't.
+    wxDataViewColumn* GTKColumnToWX(GtkTreeViewColumn *gtk_col) const;
+
     virtual void OnInternalIdle() wxOVERRIDE;
 
     int GTKGetUniformRowHeight() const { return m_uniformRowHeight; }
@@ -215,18 +221,13 @@ protected:
     virtual void DoExpand(const wxDataViewItem& item) wxOVERRIDE;
 
     virtual void DoApplyWidgetStyle(GtkRcStyle *style) wxOVERRIDE;
+    virtual GdkWindow* GTKGetWindow(wxArrayGdkWindows& windows) const wxOVERRIDE;
 
 private:
     void Init();
 
     virtual wxDataViewItem DoGetCurrentItem() const wxOVERRIDE;
     virtual void DoSetCurrentItem(const wxDataViewItem& item) wxOVERRIDE;
-
-    // Return wxDataViewColumn matching the given GtkTreeViewColumn.
-    //
-    // If the input argument is NULL, return NULL too. Otherwise we must find
-    // the matching column and assert if we didn't.
-    wxDataViewColumn* FromGTKColumn(GtkTreeViewColumn *gtk_col) const;
 
     friend class wxDataViewCtrlDCImpl;
     friend class wxDataViewColumn;

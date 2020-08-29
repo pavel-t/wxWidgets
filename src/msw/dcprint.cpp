@@ -137,9 +137,8 @@ wxPrinterDC::wxPrinterDC(const wxString& driver_name,
 
 wxPrinterDCImpl::wxPrinterDCImpl( wxPrinterDC *owner, const wxPrintData& printData ) :
     wxMSWDCImpl( owner )
+    , m_printData(printData)
 {
-    m_printData = printData;
-
     m_isInteractive = false;
 
     m_hDC = wxGetPrinterDC(printData);
@@ -267,14 +266,17 @@ static bool wxGetDefaultDeviceName(wxString& deviceName, wxString& portName)
 
     if (pd.hDevNames)
     {
-        lpDevNames = (LPDEVNAMES)GlobalLock(pd.hDevNames);
-        lpszDeviceName = (LPTSTR)lpDevNames + lpDevNames->wDeviceOffset;
-        lpszPortName   = (LPTSTR)lpDevNames + lpDevNames->wOutputOffset;
+        {
+            GlobalPtrLock ptr(pd.hDevNames);
 
-        deviceName = lpszDeviceName;
-        portName = lpszPortName;
+            lpDevNames = (LPDEVNAMES)ptr.Get();
+            lpszDeviceName = (LPTSTR)lpDevNames + lpDevNames->wDeviceOffset;
+            lpszPortName   = (LPTSTR)lpDevNames + lpDevNames->wOutputOffset;
 
-        GlobalUnlock(pd.hDevNames);
+            deviceName = lpszDeviceName;
+            portName = lpszPortName;
+        } // unlock pd.hDevNames
+
         GlobalFree(pd.hDevNames);
         pd.hDevNames=NULL;
     }

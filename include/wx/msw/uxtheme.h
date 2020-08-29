@@ -13,6 +13,8 @@
 
 #include "wx/defs.h"
 
+#if wxUSE_UXTHEME
+
 #include "wx/msw/private.h"     // we use GetHwndOf()
 #include <uxtheme.h>
 
@@ -31,8 +33,8 @@
 // ----------------------------------------------------------------------------
 // Definitions for legacy Windows SDKs
 // ----------------------------------------------------------------------------
-// Some defintions introduced with Windows Vista might be missing in older SDKs
-// Missing defintions are added here for compatiblity
+// Some definitions introduced with Windows Vista might be missing in older SDKs
+// Missing definitions are added here for compatibility
 
 #ifndef VSCLASS_LISTVIEW
 #define LISS_NORMAL 1
@@ -252,6 +254,12 @@ private:
 
     wxDECLARE_NO_COPY_CLASS(wxUxThemeHandle);
 };
+
+#else // !wxUSE_UXTHEME
+
+inline bool wxUxThemeIsActive() { return false; }
+
+#endif // wxUSE_UXTHEME/!wxUSE_UXTHEME
 
 #endif // _WX_UXTHEME_H_
 
