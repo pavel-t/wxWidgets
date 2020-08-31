@@ -5094,17 +5094,18 @@ bool wxPropertyGrid::HandleMouseMove( int x, unsigned int y,
                         // Show cropped value string as a tooltip
                         wxString tipString;
                         int space = 0;
+                        int splitterPos = GetSplitterPosition();
 
                         if ( m_mouseSide == 1 )
                         {
                             tipString = m_propHover->GetLabel();
-                            space = splitterX-m_marginWidth-3;
+                            space = splitterPos-m_marginWidth-3;
                         }
                         else if ( m_mouseSide == 2 )
                         {
                             tipString = m_propHover->GetDisplayedString();
 
-                            space = m_width - splitterX;
+                            space = m_width - splitterPos - 3;
                             if ( m_propHover->HasFlag(wxPG_PROP_CUSTOMIMAGE) )
                                 space -= wxPG_CUSTOM_IMAGE_WIDTH +
                                          wxCC_CUSTOM_IMAGE_MARGIN1 +
