@@ -1213,6 +1213,16 @@ bool wxTextCtrlBase::OnDynamicBind(wxDynamicEventTableEntry& entry)
     return wxControl::OnDynamicBind(entry);
 }
 
+wxString wxTextCtrlBase::GetValue() const
+{
+   return wxTextEntry::GetValue();
+}
+
+void wxTextCtrlBase::SetValue(const wxString& value)
+{
+   wxTextEntry::SetValue(value);
+}
+
 // ----------------------------------------------------------------------------
 // hit testing
 // ----------------------------------------------------------------------------
