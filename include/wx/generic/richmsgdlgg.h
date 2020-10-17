@@ -10,6 +10,9 @@
 #ifndef _WX_GENERIC_RICHMSGDLGG_H_
 #define _WX_GENERIC_RICHMSGDLGG_H_
 
+#if !defined(__WXGTK20__) || defined(__WXUNIVERSAL__)
+    #define wxCollapsiblePane wxGenericCollapsiblePane
+#endif
 class WXDLLIMPEXP_FWD_CORE wxCheckBox;
 class WXDLLIMPEXP_FWD_CORE wxCollapsiblePane;
 class WXDLLIMPEXP_FWD_CORE wxCollapsiblePaneEvent;
